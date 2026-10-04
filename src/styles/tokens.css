@@ -1,0 +1,60 @@
+/*
+ * Colour tokens from the Figma collection "Car Dash / Color" (file W2bvv40foijtkNNFonQNgV).
+ * Values read from every mode with the Plugin API, so the Day value of status/ok
+ * (not bound on any Day frame) is the real one, not a guess.
+ */
+
+:root,
+[data-theme="night"] {
+  --surface-bg: #0a0b0d;
+  --surface-panel: #141518;
+  --surface-panel-2: #1e2024;
+
+  --border-line: #ffffff1a;
+
+  --text-primary: #f2f3f5;
+  --text-secondary: #a2a8b0;
+  --text-muted: #868c95;
+
+  --accent-default: #7db7f0;
+  --accent-on-accent: #0a0b0d;
+
+  --status-warning: #f2b35b;
+  --status-warning-text: #f5c27a;
+  --status-warning-bg: #f2b35b1f;
+  --status-ok: #5bc98a;
+
+  --map-bg: #0f1114;
+  --map-block: #16191d;
+  --map-park: #13201a;
+  --map-road: #252a30;
+
+  color-scheme: dark;
+}
+
+[data-theme="day"] {
+  --surface-bg: #e7eaee;
+  --surface-panel: #ffffff;
+  --surface-panel-2: #eef0f3;
+
+  --border-line: #0000001a;
+
+  --text-primary: #121316;
+  --text-secondary: #4f545c;
+  --text-muted: #62676f;
+
+  --accent-default: #1f6fd1;
+  --accent-on-accent: #ffffff;
+
+  --status-warning: #c27400;
+  --status-warning-text: #8a5200;
+  --status-warning-bg: #fff2de;
+  --status-ok: #1f8a4c;
+
+  --map-bg: #dce3ea;
+  --map-block: #cfd7e0;
+  --map-park: #c9dccb;
+  --map-road: #ffffff;
+
+  color-scheme: light;
+}

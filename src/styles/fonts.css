@@ -1,0 +1,8 @@
+/* Variable builds of Geist and Geist Mono, so Sport mode can animate the wght axis. */
+@import "@fontsource-variable/geist/wght.css";
+@import "@fontsource-variable/geist-mono/wght.css";
+
+:root {
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+}

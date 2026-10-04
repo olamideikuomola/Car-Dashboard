@@ -1,0 +1,45 @@
+/*
+ * Motion tokens, CSS side. Mirrors src/motion/tokens.ts.
+ * No raw durations or cubic-beziers anywhere else in the codebase.
+ */
+
+:root {
+  --duration-press: 140ms;
+  --duration-short: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+  --duration-xslow: 600ms;
+  --duration-hero: 1400ms;
+
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
+  /* Constant motion only (media progress, fan spin). Not an easing for UI moves. */
+  --ease-linear: linear;
+
+  --press-scale: 0.96;
+  --press-scale-strong: 0.94;
+  --scale-peak: 1.03;
+  --scale-peak-strong: 1.06;
+  --stagger-expressive: 30ms;
+  --stagger-dramatic: 50ms;
+}
+
+/*
+ * Calm profile and reduced motion: every CSS transition collapses to a fade at duration-short.
+ * Components read these instead of the raw tokens for anything that moves.
+ */
+:root {
+  --move-duration-press: var(--duration-press);
+  --move-duration-normal: var(--duration-normal);
+  --move-duration-slow: var(--duration-slow);
+  --move-press-scale: var(--press-scale);
+  --move-press-scale-strong: var(--press-scale-strong);
+}
+
+:root[data-motion="reduced"] {
+  --move-duration-press: 0ms;
+  --move-duration-normal: 0ms;
+  --move-duration-slow: 0ms;
+  --move-press-scale: 1;
+  --move-press-scale-strong: 1;
+}
