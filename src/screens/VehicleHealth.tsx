@@ -1,6 +1,7 @@
 import { Icon } from "../components/icons/Icon";
 import { ListRow } from "../components/ListRow";
-import type { Tyres, VehicleState } from "../sim/types";
+import type { Tyres } from "../sim/types";
+import { useVehicle } from "../sim/useVehicleSim";
 import { CarTopView, isLow } from "./CarTopView";
 import "./health.css";
 
@@ -28,7 +29,9 @@ function TyreReadout({ corner, bar, align }: { corner: Corner; bar: number; alig
 }
 
 /** Vehicle health, Figma 5:186. */
-export function VehicleHealth({ s, onBack }: { s: VehicleState; onBack?: () => void }) {
+export function VehicleHealth() {
+  const s = useVehicle();
+  const onBack = () => s.setScreen("drive");
   const lowCount = (Object.values(s.tyres) as number[]).filter(isLow).length;
   const attention = lowCount;
   return (

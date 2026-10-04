@@ -1,9 +1,12 @@
+import { motion, useTransform, type MotionValue } from "motion/react";
 import { Icon, type IconName } from "../components/icons/Icon";
 import { IconButton } from "../components/IconButton";
 import { ModeSegment } from "../components/ModeSegment";
 import { TempStepper } from "../components/TempStepper";
 import { TripStat } from "../components/TripStat";
-import type { Dock, Gear, VehicleState } from "../sim/types";
+import { LiveText } from "../primitives/LiveText";
+import { live, useVehicle } from "../sim/useVehicleSim";
+import type { Dock, Gear } from "../sim/types";
 import { MapView } from "./MapView";
 import "./drive.css";
 
@@ -16,9 +19,12 @@ const DOCK: { id: Dock; icon: IconName; label: string }[] = [
 ];
 
 const km = (n: number) => n.toLocaleString("en-GB");
+const fmtDistance = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m >= 100 ? Math.round(m / 10) * 10 : Math.round(m)} m`);
 
 /** Drive screen, Figma 4:2 (Night) and 5:66 (Day). One structure, theme switches the tokens. */
-export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () => void }) {
+export function Drive() {
+  const s = useVehicle();
+  const onOpenHealth = () => s.setScreen("health");
   return (
     <div className="drive">
       <div className="drive__main">
@@ -27,7 +33,7 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
           <header className="driving__header">
             <div className="gears" role="radiogroup" aria-label="Gear">
               {GEARS.map((g) => (
-                <button key={g} type="button" role="radio" aria-checked={g === s.gear} className={`gear hit-56 ${g === s.gear ? "is-active" : ""}`}>
+                <button key={g} type="button" role="radio" aria-checked={g === s.gear} className={`gear hit-56 ${g === s.gear ? "is-active" : ""}`} onClick={() => s.setGear(g)}>
                   {g}
                 </button>
               ))}
@@ -41,9 +47,7 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
 
           <div className="speed">
             <div className="speed__readout">
-              <span className="speed__value" aria-label={`${s.speed} kilometres per hour`}>
-                {s.speed}
-              </span>
+              <LiveText className="speed__value" value={live.speed} format={(v) => String(Math.round(v))} />
               <span className="speed__unit">KM/H</span>
             </div>
             <div className="limit">
@@ -53,7 +57,7 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
           </div>
 
           <div className="mode-battery">
-            <ModeSegment value={s.mode} />
+            <ModeSegment value={s.mode} onChange={s.setMode} />
             <div className="battery">
               <div className="battery__row">
                 <div className="battery__pct">
@@ -77,10 +81,10 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
           <MapView />
           <div className="next-turn">
             <div className="next-turn__icon">
-              <Icon name="turn-right" />
+              <Icon name="turn-right" style={s.turn.direction === "left" ? { transform: "scaleX(-1)" } : undefined} />
             </div>
             <div className="next-turn__text">
-              <span className="next-turn__distance">{s.turnDistance} m</span>
+              <LiveText className="next-turn__distance" value={live.turnDistance} format={fmtDistance} />
               <span className="next-turn__road">
                 Turn {s.turn.direction} onto {s.turn.road}
               </span>
@@ -94,7 +98,7 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
             <div className="trip__route">
               <span>NOW</span>
               <div className="trip__track">
-                <div className="trip__fill" style={{ transform: `translateX(${(s.routeProgress - 1) * 100}%)` }} />
+                <LiveBar className="trip__fill" value={live.tripProgress} />
               </div>
               <span>HOME</span>
             </div>
@@ -145,12 +149,12 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
               </div>
             </div>
             <div className="media__progress">
-              <div className="media__progress-fill" style={{ transform: `translateX(${(s.trackProgress - 1) * 100}%)` }} />
+              <LiveBar className="media__progress-fill" value={live.trackProgress} />
             </div>
             <div className="media__transport">
-              <IconButton icon="skip-back" label="Previous" variant="ghost" size={56} round />
-              <IconButton icon="pause" label={s.playing ? "Pause" : "Play"} variant="solid" round />
-              <IconButton icon="skip-forward" label="Next" variant="ghost" size={56} round />
+              <IconButton icon="skip-back" label="Previous track" variant="ghost" size={56} round onClick={() => s.changeTrack(-1)} />
+              <IconButton icon={s.playing ? "pause" : "play"} label={s.playing ? "Pause" : "Play"} variant="solid" round onClick={s.togglePlaying} />
+              <IconButton icon="skip-forward" label="Next track" variant="ghost" size={56} round onClick={() => s.changeTrack(1)} />
             </div>
           </section>
         </div>
@@ -158,28 +162,33 @@ export function Drive({ s, onOpenHealth }: { s: VehicleState; onOpenHealth?: () 
 
       {/* Controls */}
       <footer className="panel controls" aria-label="Climate and shortcuts">
-        <TempStepper label="Driver" value={s.tempDriver} />
+        <TempStepper label="Driver" value={s.tempDriver} onStep={(d) => s.stepTemp("driver", d)} />
         <div className="climate">
-          <button type="button" className={`climate__pill pressable ${s.ac ? "is-on" : ""}`} aria-pressed={s.ac}>
+          <button type="button" className={`climate__pill pressable ${s.ac ? "is-on" : ""}`} aria-pressed={s.ac} onClick={s.toggleAc}>
             <Icon name="snowflake" />
             <span>A/C</span>
           </button>
-          <button type="button" className="climate__pill climate__fan pressable" aria-label={`Fan level ${s.fan}`}>
+          <button type="button" className="climate__pill climate__fan pressable" aria-label={`Fan level ${s.fan}`} onClick={s.cycleFan}>
             <Icon name="fan" />
             <span className="mono">{s.fan}</span>
           </button>
-          <IconButton icon="defrost" label="Rear defrost" variant={s.defrost ? "accent" : "tile"} aria-pressed={s.defrost} />
-          <IconButton icon="seat-heat" label="Seat heating" variant={s.seatHeat ? "accent" : "tile"} aria-pressed={s.seatHeat} />
+          <IconButton icon="defrost" label="Rear defrost" variant={s.defrost ? "accent" : "tile"} aria-pressed={s.defrost} onClick={s.toggleDefrost} />
+          <IconButton icon="seat-heat" label="Seat heating" variant={s.seatHeat ? "accent" : "tile"} aria-pressed={s.seatHeat} onClick={s.toggleSeatHeat} />
         </div>
         <nav className="dock" aria-label="Shortcuts">
           {DOCK.map((d) => (
-            <button key={d.id} type="button" className={`dock__item pressable ${d.id === s.dock ? "is-active" : ""}`} aria-label={d.label} aria-current={d.id === s.dock ? "page" : undefined}>
+            <button key={d.id} type="button" className={`dock__item pressable ${d.id === s.dock ? "is-active" : ""}`} aria-label={d.label} aria-current={d.id === s.dock ? "page" : undefined} onClick={() => s.setDock(d.id)}>
               <Icon name={d.icon} />
             </button>
           ))}
         </nav>
-        <TempStepper label="Passenger" value={s.tempPassenger} />
+        <TempStepper label="Passenger" value={s.tempPassenger} onStep={(d) => s.stepTemp("passenger", d)} />
       </footer>
     </div>
   );
+}
+
+function LiveBar({ value, className }: { value: MotionValue<number>; className: string }) {
+  const transform = useTransform(value, (p) => `translateX(${(Math.min(1, Math.max(0, p)) - 1) * 100}%)`);
+  return <motion.div className={className} style={{ transform }} />;
 }

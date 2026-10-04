@@ -1,43 +1,72 @@
+import { motion, useTransform } from "motion/react";
+import { M_PER_UNIT, ROUTE_D, START_S, pointAt } from "../sim/route";
+import { live } from "../sim/useVehicleSim";
+
 /**
- * Map layer from Figma node 4:46, exported as SVG and rebuilt with colour tokens so it recolours
- * in place on theme change. Coordinates are the Navigation panel's (780 by 560).
- * Layers are kept apart (blocks, roads, route, puck) so later phases can pan, draw and rotate them.
+ * Map layer from Figma node 4:46, rebuilt with colour tokens so it recolours in place on theme
+ * change. Coordinates are the Navigation panel's (780 by 560). The Figma blocks stay exactly
+ * where they were; the grid continues beyond them so the map can pan with the car.
  */
 
-const BLOCK = (x: number, y0: number, w: number, y1: number) => {
-  // Rounded blocks as exported: 10px radius across, about 13px down (the map is scaled 1.32 vertically).
-  const rx = 10;
-  const ry = 13.205;
-  return `M${x + w - rx} ${y0}H${x + rx}C${x + rx - 5.5228} ${y0} ${x} ${y0 + ry * 0.4477} ${x} ${y0 + ry}V${y1 - ry}C${x} ${y1 - ry * 0.4477} ${x + rx - 5.5228} ${y1} ${x + rx} ${y1}H${x + w - rx}C${x + w - rx + 5.5228} ${y1} ${x + w} ${y1 - ry * 0.4477} ${x + w} ${y1 - ry}V${y0 + ry}C${x + w} ${y0 + ry * 0.4477} ${x + w - rx + 5.5228} ${y0} ${x + w - rx} ${y0}Z`;
-};
+const RX = 10;
+const RY = 13.205; // the Figma map is scaled 1.32 vertically, so block corners are elliptical
 
-const ROWS: [number, number][] = [
-  [-50.1282, 147.949],
-  [200.769, 385.641],
-  [438.462, 623.333],
-];
-const COLS: [number, number][] = [
-  [30, 220],
-  [290, 190],
-  [520, 250],
-];
+function block(x0: number, x1: number, y0: number, y1: number) {
+  const k = 0.4477;
+  return `M${x1 - RX} ${y0}H${x0 + RX}C${x0 + RX * k} ${y0} ${x0} ${y0 + RY * k} ${x0} ${y0 + RY}V${y1 - RY}C${x0} ${y1 - RY * k} ${x0 + RX * k} ${y1} ${x0 + RX} ${y1}H${x1 - RX}C${x1 - RX * k} ${y1} ${x1} ${y1 - RY * k} ${x1} ${y1 - RY}V${y0 + RY}C${x1} ${y0 + RY * k} ${x1 - RX * k} ${y0} ${x1 - RX} ${y0}Z`;
+}
 
-export const ROUTE_D = "M270 649.744V412.051H500V174.359H790";
-export const ROADS_D = "M-10 174.359H790M-10 412.051H790M270 -89.7436V649.744M500 -89.7436V649.744";
+// Figma's blocks: three columns and three rows, with roads at x 270, 500 and y 174.359, 412.051.
+// The grid continues right and up (the directions the route travels) so the map can pan; the extra
+// roads sit just outside the panel at rest so the resting frame still matches Figma.
+const COLS: [number, number][] = [[30, 250], [290, 480], [520, 770], [830, 1060], [1100, 1330]];
+const ROAD_X = [270, 500, 800, 1080];
+const ROAD_Y = [-327.4, -76.54, 174.359, 412.051, 649.744, 887.4];
+const GAP_Y = 26.41; // block edge to road centre, from Figma (147.949 to 174.359)
+
+const BLOCKS = COLS.flatMap(([x0, x1]) =>
+  ROAD_Y.slice(0, -1).map((y, j) => ({
+    d: block(x0, x1, y + GAP_Y, ROAD_Y[j + 1] - GAP_Y),
+    park: x0 === 290 && y === 174.359,
+  })),
+);
+const ROADS_D = [
+  ...ROAD_X.map((x) => `M${x} ${ROAD_Y[0] - 40}V${ROAD_Y[ROAD_Y.length - 1] + 40}`),
+  ...ROAD_Y.map((y) => `M-10 ${y}H${COLS[COLS.length - 1][1] + 40}`),
+].join("");
+
+/**
+ * Where the car sits on screen. Figma parks the puck at (270, 531), which is under the trip card,
+ * so the resting frame keeps that and the anchor eases into the open map between the two cards
+ * over the first 80 m of travel. Both are panel coordinates.
+ */
+const REST = pointAt(START_S);
+const VIEW = { x: REST.x, y: 330 }; // same x, so the map's left edge never comes into view
+const BLEND_M = 80;
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
+export function anchorAt(s: number) {
+  const k = smooth(Math.min(1, Math.max(0, ((s - START_S) * M_PER_UNIT) / BLEND_M)));
+  return { x: REST.x + (VIEW.x - REST.x) * k, y: REST.y + (VIEW.y - REST.y) * k };
+}
 
 export function MapView() {
+  const worldTransform = useTransform(live.routeS, (s) => {
+    const p = pointAt(s);
+    const a = anchorAt(s);
+    return `translate(${a.x - p.x}px, ${a.y - p.y}px)`;
+  });
+  const puckTransform = useTransform(live.routeS, (s) => {
+    const a = anchorAt(s);
+    return `translate(${a.x}px, ${a.y}px) rotate(${pointAt(s).heading}deg)`;
+  });
+
   return (
     <svg className="map" width="780" height="560" viewBox="0 0 780 560" aria-hidden="true">
-      <g className="map__world">
-        {ROWS.map(([y0, y1], r) =>
-          COLS.map(([x, w], c) => (
-            <path
-              key={`${r}-${c}`}
-              d={BLOCK(x, y0, w, y1)}
-              fill={r === 1 && c === 1 ? "var(--map-park)" : "var(--map-block)"}
-            />
-          )),
-        )}
+      <motion.g className="map__world" style={{ transform: worldTransform }}>
+        {BLOCKS.map((b, i) => (
+          <path key={i} d={b.d} fill={b.park ? "var(--map-park)" : "var(--map-block)"} />
+        ))}
         <path d={ROADS_D} stroke="var(--map-road)" strokeWidth={34.8615} fill="none" />
         <path
           className="map__route"
@@ -48,11 +77,19 @@ export function MapView() {
           strokeLinejoin="round"
           fill="none"
         />
-      </g>
-      <g className="map__puck">
-        <ellipse cx="270" cy="530.897" rx="18" ry="23.769" fill="var(--accent-default)" opacity={0.25} />
-        <path d="M270 512.41L281 546.744L270 538.821L259 546.744L270 512.41Z" fill="var(--accent-default)" />
-      </g>
+      </motion.g>
+      <motion.g className="map__puck" style={{ transform: puckTransform }}>
+        <ellipse cx="0" cy="0" rx="18" ry="23.769" fill="var(--accent-default)" opacity={0.25} />
+        {/* Outline added (not in Figma): the arrow is accent on an accent route and disappears without it. */}
+        <path
+          d="M0 -18.487L11 15.847L0 7.924L-11 15.847L0 -18.487Z"
+          fill="var(--accent-default)"
+          stroke="var(--surface-panel)"
+          strokeWidth={3}
+          strokeLinejoin="round"
+          paintOrder="stroke"
+        />
+      </motion.g>
     </svg>
   );
 }

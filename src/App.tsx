@@ -1,18 +1,19 @@
-import { useEffect, useState } from "react";
-import { MotionProfileProvider, type MotionProfile } from "./motion/MotionProfileProvider";
+import { useEffect } from "react";
+import { MotionProfileProvider } from "./motion/MotionProfileProvider";
 import { Stage } from "./Stage";
 import { TokenCheck } from "./scratch/TokenCheck";
 import { Drive } from "./screens/Drive";
 import { VehicleHealth } from "./screens/VehicleHealth";
-import { figmaState, type Screen, type Theme } from "./sim/types";
+import { DemoPanel } from "./demo/DemoPanel";
+import { useVehicle, useVehicleSim } from "./sim/useVehicleSim";
 
-const params = new URLSearchParams(window.location.search);
+const scratch = new URLSearchParams(window.location.search).get("scratch");
 
 export function App() {
-  const [theme, setTheme] = useState<Theme>(params.get("theme") === "day" ? "day" : "night");
-  const [profile, setProfile] = useState<MotionProfile>("expressive");
-  const [screen, setScreen] = useState<Screen>(params.get("screen") === "health" ? "health" : "drive");
-  const scratch = params.get("scratch");
+  useVehicleSim();
+  const theme = useVehicle((s) => s.theme);
+  const profile = useVehicle((s) => s.profile);
+  const screen = useVehicle((s) => s.screen);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -20,20 +21,20 @@ export function App() {
 
   return (
     <MotionProfileProvider profile={profile}>
-      <Stage>
-        {scratch === "tokens" ? (
-          <TokenCheck
-            theme={theme}
-            profile={profile}
-            onTheme={() => setTheme((t) => (t === "night" ? "day" : "night"))}
-            onProfile={() => setProfile((p) => (p === "expressive" ? "calm" : "expressive"))}
-          />
-        ) : screen === "drive" ? (
-          <Drive s={figmaState} onOpenHealth={() => setScreen("health")} />
-        ) : (
-          <VehicleHealth s={figmaState} onBack={() => setScreen("drive")} />
-        )}
-      </Stage>
+      <Stage>{scratch === "tokens" ? <TokenCheckBound /> : screen === "drive" ? <Drive /> : <VehicleHealth />}</Stage>
+      <DemoPanel />
     </MotionProfileProvider>
+  );
+}
+
+function TokenCheckBound() {
+  const s = useVehicle();
+  return (
+    <TokenCheck
+      theme={s.theme}
+      profile={s.profile}
+      onTheme={s.toggleTheme}
+      onProfile={() => s.setProfile(s.profile === "expressive" ? "calm" : "expressive")}
+    />
   );
 }
