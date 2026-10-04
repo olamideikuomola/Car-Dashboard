@@ -20,7 +20,7 @@ export function App() {
   const wakeKey = useVehicle((s) => s.wakeKey);
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.carTheme = theme;
   }, [theme]);
 
   return (

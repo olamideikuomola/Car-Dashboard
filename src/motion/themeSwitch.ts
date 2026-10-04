@@ -8,7 +8,7 @@ export function switchTheme(next: "night" | "day", calm: boolean, commit: () => 
   const root = document.documentElement;
   const reduced = calm || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const apply = () => {
-    root.dataset.theme = next;
+    root.dataset.carTheme = next;
     commit();
   };
   if (!("startViewTransition" in document)) {

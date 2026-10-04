@@ -1,11 +1,12 @@
 /*
+ * Theme attribute is data-car-theme (not data-theme) so a host page can set its own data-theme freely.
  * Colour tokens from the Figma collection "Car Dash / Color" (file W2bvv40foijtkNNFonQNgV).
  * Values read from every mode with the Plugin API, so the Day value of status/ok
  * (not bound on any Day frame) is the real one, not a guess.
  */
 
 :root,
-[data-theme="night"] {
+[data-car-theme="night"] {
   --surface-bg: #0a0b0d;
   --surface-panel: #141518;
   --surface-panel-2: #1e2024;
@@ -36,7 +37,7 @@
   color-scheme: dark;
 }
 
-[data-theme="day"] {
+[data-car-theme="day"] {
   --surface-bg: #e7eaee;
   --surface-panel: #ffffff;
   --surface-panel-2: #eef0f3;
