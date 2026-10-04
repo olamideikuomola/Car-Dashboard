@@ -53,4 +53,8 @@ export type VehicleState = {
   paused: boolean;
   /** Bumped by the demo panel to replay the wake-up sequence. */
   wakeKey: number;
+  /** Vehicle health actions. */
+  stopAdded: boolean;
+  serviceBooked: string | null;
+  reminded: boolean;
 };

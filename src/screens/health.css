@@ -1,16 +1,25 @@
-/* Vehicle health. Measurements from Figma 5:186. */
+/* Vehicle health. Measurements from Figma 5:186. Layers are placed in stage pixels so the
+   card-to-panel morph (clip-path on the surface) can line up exactly. */
 
 .health {
   position: absolute;
   inset: 0;
-  display: flex;
-  gap: 16px;
-  padding: 24px;
   line-height: normal;
 }
+
+/* The expanding card: a full-stage panel-coloured layer, clipped from the card's rect to the panel's. */
+.health__surface {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--surface-panel);
+}
 .health__main {
-  flex: 1 0 0;
-  min-width: 0;
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  width: 1216px;
+  height: 672px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -57,9 +66,15 @@
 .tyres__col--right {
   align-items: flex-start;
 }
+.car-rise {
+  transform-origin: 50% 100%;
+}
 .car-top {
   display: block;
   flex-shrink: 0;
+}
+.car-top__tyre {
+  transition: fill var(--duration-slow) var(--ease-out-quint);
 }
 .tyre {
   display: flex;
@@ -78,7 +93,7 @@
   font-weight: 500;
   font-size: 40px;
   color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
+  transition: color var(--duration-slow) var(--ease-out-quint);
 }
 .tyre.is-low .tyre__value {
   color: var(--status-warning-text);
@@ -88,6 +103,11 @@
   font-size: 14px;
   letter-spacing: 1.5px;
   color: var(--text-muted);
+}
+.tyre-chip-slot,
+.tyre-chip-spacer {
+  display: flex;
+  height: 32px;
 }
 .tyre-chip {
   display: flex;
@@ -107,9 +127,6 @@
   border-radius: 50%;
   background: var(--status-warning);
 }
-.tyre-chip-spacer {
-  height: 32px;
-}
 
 .tip {
   display: flex;
@@ -120,6 +137,7 @@
   border-radius: 16px;
 }
 .tip__icon {
+  display: inline-flex;
   flex-shrink: 0;
   color: var(--accent-default);
 }
@@ -131,6 +149,11 @@
   color: var(--text-primary);
 }
 .tip__action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   height: 52px;
   padding: 0 22px;
   border-radius: 26px;
@@ -139,11 +162,31 @@
   font-weight: 500;
   font-size: 17px;
   white-space: nowrap;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tip__check {
+  display: inline-flex;
+}
+.tip__sizer {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+}
+/* Add stop is drawn 52px tall; its hit area extends to 56px. */
+.tip__action::before {
+  content: "";
+  position: absolute;
+  inset: -2px 0;
 }
 
 .health__side {
+  position: absolute;
+  right: 24px;
+  top: 24px;
   width: 640px;
-  flex-shrink: 0;
+  height: 672px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -170,6 +213,14 @@
   display: flex;
   gap: 10px;
 }
+.side-card__note {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  margin: 0;
+  font-size: 17px;
+  color: var(--text-secondary);
+}
 .pill-btn {
   display: flex;
   align-items: center;
@@ -190,4 +241,48 @@
 .pill-btn--outline {
   border: 1px solid var(--border-line);
   color: var(--text-primary);
+}
+.book {
+  position: relative;
+  overflow: hidden;
+}
+.book__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-default);
+}
+.book__label {
+  position: relative;
+  transition: color var(--duration-normal) var(--ease-out-quint);
+}
+.book.is-booking .book__label {
+  color: var(--accent-on-accent);
+}
+
+/* Sequence details (first visit): status dots scale up from 0.6; UPDATE READY shimmers once. */
+.row-rise--dot .status-dot {
+  animation: dot-pop var(--duration-normal) var(--ease-out-quint) both;
+  animation-delay: var(--dot-delay);
+}
+@keyframes dot-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+.shimmer {
+  background: linear-gradient(90deg, currentColor 40%, var(--text-primary) 50%, currentColor 60%) 100% 0 / 300% 100% no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer var(--duration-xslow) var(--ease-in-out-quart) both;
+}
+@keyframes shimmer {
+  to {
+    background-position: 0% 0;
+  }
+}
+:root[data-motion="reduced"] .row-rise--dot .status-dot,
+:root[data-motion="reduced"] .shimmer {
+  animation: none;
 }

@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { tween } from "./motion/tokens";
 import { MotionProfileProvider } from "./motion/MotionProfileProvider";
 import { Stage } from "./Stage";
 import { TokenCheck } from "./scratch/TokenCheck";
@@ -24,7 +26,22 @@ export function App() {
   return (
     <MotionProfileProvider profile={profile}>
       <Stage>
-        {scratch === "tokens" ? <TokenCheckBound /> : scratch === "primitives" ? <Primitives /> : screen === "drive" ? <Drive key={wakeKey} /> : <VehicleHealth />}
+        {scratch === "tokens" ? (
+          <TokenCheckBound />
+        ) : scratch === "primitives" ? (
+          <Primitives />
+        ) : (
+          // Both screens overlap during the shared-card transition; Health always stacks above Drive.
+          <AnimatePresence initial={false}>
+            {screen === "drive" ? (
+              <DriveLayer key="drive">
+                <Drive key={wakeKey} />
+              </DriveLayer>
+            ) : (
+              <VehicleHealth key="health" />
+            )}
+          </AnimatePresence>
+        )}
       </Stage>
       <DemoPanel />
     </MotionProfileProvider>
@@ -40,5 +57,14 @@ function TokenCheckBound() {
       onTheme={s.toggleTheme}
       onProfile={() => s.setProfile(s.profile === "expressive" ? "calm" : "expressive")}
     />
+  );
+}
+
+/** Drive fades out under the expanding card, and back in under the shrinking one. */
+function DriveLayer({ children }: { children: ReactNode }) {
+  return (
+    <motion.div className="screen-layer screen-layer--drive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={tween("normal")}>
+      {children}
+    </motion.div>
   );
 }

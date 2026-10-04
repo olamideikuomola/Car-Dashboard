@@ -59,3 +59,14 @@ button {
   background: var(--surface-bg);
   overflow: hidden;
 }
+
+.screen-layer {
+  position: absolute;
+  inset: 0;
+}
+.screen-layer--drive {
+  z-index: 1;
+}
+.health {
+  z-index: 2;
+}

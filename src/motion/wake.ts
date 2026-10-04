@@ -59,5 +59,10 @@ export function useWakeGate(source: MotionValue<number>, part: WakePart, wakingI
     const id = window.setTimeout(() => open.set(1), wakeDelay(part) * 1000);
     return () => window.clearTimeout(id);
   }, [waking, part, open]);
-  return useTransform(() => (open.get() ? source.get() : rest));
+  // Read both values on every compute: a computed motion value subscribes to what it reads, and a
+  // conditional read would leave `source` unsubscribed while the gate starts shut.
+  return useTransform(() => {
+    const v = source.get();
+    return open.get() ? v : rest;
+  });
 }

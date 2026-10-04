@@ -1,11 +1,14 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
+import type { HTMLMotionProps } from "motion/react";
 import { Icon, type IconName } from "./icons/Icon";
+import { PressScale } from "../primitives/PressScale";
 
 type Variant = "tile" | "accent" | "ghost" | "solid";
 
 /**
  * Control/Icon button (Figma 3:65). Square 64px touch control for climate and shortcuts.
  * tile: panel-2 fill. accent: active climate. ghost: media skip. solid: media play.
+ * Press feedback on spring-press.
  */
 export function IconButton({
   icon,
@@ -15,25 +18,25 @@ export function IconButton({
   round = false,
   className = "",
   children,
+  style,
   ...rest
 }: {
-  icon: IconName;
+  icon?: IconName;
   label: string;
   variant?: Variant;
   size?: 56 | 64;
   round?: boolean;
   children?: ReactNode;
-} & ButtonHTMLAttributes<HTMLButtonElement>) {
+} & Omit<HTMLMotionProps<"button">, "children">) {
   return (
-    <button
-      type="button"
+    <PressScale
       aria-label={label}
       className={`icon-btn icon-btn--${variant} ${round ? "icon-btn--round" : ""} ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: size, height: size, ...style }}
       {...rest}
     >
-      <Icon name={icon} />
+      {icon && <Icon name={icon} />}
       {children}
-    </button>
+    </PressScale>
   );
 }

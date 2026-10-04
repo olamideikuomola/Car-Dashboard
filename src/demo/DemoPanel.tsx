@@ -50,6 +50,9 @@ export function DemoPanel() {
               Tyre alert {s.tyreAlert ? "on" : "off"}
             </Btn>
             <Btn onClick={() => s.changeTrack(1)}>Track change</Btn>
+            <Btn active={s.battery < 20} onClick={s.toggleLowBattery}>
+              Low battery
+            </Btn>
           </Group>
           <Group title="Motion and sim">
             <Btn active={s.profile === "calm"} onClick={() => s.setProfile(s.profile === "expressive" ? "calm" : "expressive")}>

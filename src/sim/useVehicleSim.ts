@@ -14,7 +14,7 @@ import { switchTheme } from "../motion/themeSwitch";
 /** One loop of the scripted drive, in seconds. */
 export const LOOP_S = 90;
 /** Sim tick. Values are retargeted at this rate; springs in the UI fill the frames between. */
-const TICK_MS = 100;
+export const TICK_MS = 100;
 
 const TRIP_KM = 12.4;
 const TRIP_TOTAL_KM = 17.7;
@@ -88,6 +88,7 @@ type Internal = {
   trackClock: number;
   /** False on the session's first pass (already cruising, as in Figma); true after each stop and loop. */
   fromRest: boolean;
+  savedBattery: number;
 };
 
 const sim: Internal = {
@@ -101,6 +102,7 @@ const sim: Internal = {
   overUntil: -1,
   trackClock: (165 / 392) * TRACK_S,
   fromRest: false,
+  savedBattery: 78,
 };
 
 type Actions = {
@@ -111,6 +113,10 @@ type Actions = {
   setScreen: (s: Screen) => void;
   setProfile: (p: MotionProfile) => void;
   togglePaused: () => void;
+  toggleLowBattery: () => void;
+  addStop: () => void;
+  bookService: () => void;
+  remindLater: () => void;
   wake: () => void;
   newLimit: () => void;
   overLimit: () => void;
@@ -170,6 +176,9 @@ export const useVehicle = create<VehicleState & Actions>()((set, get) => ({
   profile: "expressive",
   paused: false,
   wakeKey: 0,
+  stopAdded: false,
+  serviceBooked: null,
+  reminded: false,
 
   setGear: (gear) => set({ gear }),
   setMode: (mode) => set({ mode, range: Math.round(sim.battery * KM_PER_BATTERY_PCT * MODE_RANGE[mode]) }),
@@ -181,6 +190,19 @@ export const useVehicle = create<VehicleState & Actions>()((set, get) => ({
   setScreen: (screen) => set({ screen }),
   setProfile: (profile) => set({ profile }),
   togglePaused: () => set({ paused: !get().paused }),
+  toggleLowBattery: () => {
+    if (sim.battery >= 20) {
+      sim.savedBattery = sim.battery;
+      sim.battery = 18;
+    } else {
+      sim.battery = sim.savedBattery;
+    }
+    const st = get();
+    set({ battery: Math.round(sim.battery), range: Math.round(sim.battery * KM_PER_BATTERY_PCT * MODE_RANGE[st.mode]) });
+  },
+  addStop: () => set({ stopAdded: !get().stopAdded }),
+  bookService: () => set({ serviceBooked: "Thu 9 Oct, 09:30" }),
+  remindLater: () => set({ reminded: true }),
   wake: () => {
     startWake();
     set({ wakeKey: get().wakeKey + 1 });

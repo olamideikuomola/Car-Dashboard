@@ -86,15 +86,36 @@ export function RollingNumber({ value, format = round, smooth, from, className =
     }
   }, [format, shown]);
 
+  return <RollingChars text={text} dir={dir} instant={reduced} className={className} label={rest["aria-label"]} />;
+}
+
+/**
+ * A preformatted string whose digits roll (clock times, "18 min", "12.4 km", "21.5°").
+ * Direction comes from comparing the numbers in the old and new strings.
+ */
+export function RollingText({ text, className = "", "aria-label": label }: { text: string; className?: string; "aria-label"?: string }) {
+  const { reduced } = useMotionPrefs();
+  const prev = useRef(text);
+  const dir = useRef<1 | -1>(1);
+  if (prev.current !== text) {
+    dir.current = numeric(text) >= numeric(prev.current) ? 1 : -1;
+    prev.current = text;
+  }
+  return <RollingChars text={text} dir={dir.current} instant={reduced} className={className} label={label} />;
+}
+
+const numeric = (t: string) => parseFloat(t.replace(/[^\d.]/g, "")) || 0;
+
+function RollingChars({ text, dir, instant, className, label }: { text: string; dir: 1 | -1; instant: boolean; className: string; label?: string }) {
   // Key digits from the right so units stay units when the length changes (9 to 10).
   const chars = text.split("");
   return (
     <span className={`rolling ${className}`}>
-      <span className="sr-only">{rest["aria-label"] ? `${rest["aria-label"]} ${text}` : text}</span>
+      <span className="sr-only">{label ? `${label} ${text}` : text}</span>
       {chars.map((c, i) => {
         const place = chars.length - 1 - i;
         return isDigit(c) ? (
-          <DigitSlot key={`d${place}`} digit={c} dir={dir} instant={reduced} />
+          <DigitSlot key={`d${place}`} digit={c} dir={dir} instant={instant} />
         ) : (
           <span key={`s${place}${c}`} className="rolling__static" aria-hidden="true">
             {c}

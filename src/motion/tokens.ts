@@ -119,6 +119,15 @@ export function overshootPx(mode: StaggerMode, travel: number) {
   return Math.min(Math.abs(travel) * o.ratio, o.maxPx) * Math.sign(travel);
 }
 
+/**
+ * Hold to repeat (temperature): first repeat after duration-slow, then every 180ms, speeding
+ * up by 20% per step to a floor of 60ms. Behaviour timings, kept here so they stay tunable.
+ */
+export const holdRepeat = { delay: ms.slow, start: 180, floor: 60, accel: 0.8 } as const;
+
+/** Fan icon spin per fan level, degrees per second. Constant motion, so linear. */
+export const fanDegPerSecPerLevel = 72;
+
 /** Reduced motion and calm profile: opacity only, at duration-short. */
 export const reducedTransition = tween("short", "outQuint");
 

@@ -308,12 +308,14 @@
   gap: 16px;
 }
 .vehicle {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   padding: 24px;
 }
+.vehicle__inner {
+  display: flex;
+  flex-direction: column;
+}
 .vehicle__head {
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -329,6 +331,13 @@
   color: var(--text-secondary);
   --hit-w: 72px;
 }
+/* The alert's 16px gap lives inside its wrapper, so collapsing it leaves no jump. */
+.alert-wrap {
+  overflow: hidden;
+}
+.alert-wrap > .alert {
+  margin-bottom: 16px;
+}
 .alert {
   display: flex;
   align-items: flex-start;
@@ -340,6 +349,7 @@
   text-align: left;
 }
 .alert__dot {
+  position: relative;
   flex-shrink: 0;
   width: 10px;
   height: 10px;
@@ -402,17 +412,25 @@
   align-items: center;
   gap: 16px;
 }
-.media__art {
+.media__art-slot {
+  position: relative;
   width: 72px;
   height: 72px;
   flex-shrink: 0;
+}
+.media__art {
+  width: 72px;
+  height: 72px;
   border-radius: 14px;
 }
 .media__meta {
+  position: relative;
+  white-space: nowrap;
+}
+.media__meta-inner {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  white-space: nowrap;
 }
 .media__title {
   font-weight: 500;
@@ -465,9 +483,24 @@
   font-weight: 500;
   font-size: 18px;
 }
-.climate__pill.is-on {
-  background: var(--accent-default);
+.climate__pill {
+  position: relative;
+  overflow: hidden;
+}
+.climate__pill > :not(.climate__fill) {
+  position: relative;
+}
+.climate__ac.is-on {
   color: var(--accent-on-accent);
+}
+/* The A/C fill grows from the tap point (clip-path circle). */
+.climate__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--accent-default);
+}
+.fan-icon {
+  display: inline-flex;
 }
 .dock {
   display: flex;
@@ -485,9 +518,37 @@
   border-radius: 15px;
   color: var(--text-secondary);
 }
+.dock__item {
+  position: relative;
+}
 .dock__item.is-active {
-  background: var(--surface-panel);
   color: var(--text-primary);
+}
+.dock__pill {
+  border-radius: 15px;
+  background: var(--surface-panel);
+}
+
+/* Heat icons: switching on sends the heat lines up once. CSS keyframes run when the class lands. */
+.heat-on [data-heat] {
+  animation: heat-rise var(--duration-slow) var(--ease-out-quint);
+}
+@keyframes heat-rise {
+  0% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+:root[data-motion="reduced"] .heat-on [data-heat] {
+  animation: none;
 }
 
 /* Under 100 m to the turn the icon fill brightens: a light layer fades in over the accent. */
@@ -524,4 +585,25 @@
 }
 .drive[data-gear="P"] .park-lift::after {
   opacity: 1;
+}
+
+/* The amber dot's two rings. */
+.alert__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--status-warning);
+}
+
+/* Over the limit: the label says so and takes the ring colour (state is never motion alone). */
+.limit__label {
+  transition: color var(--duration-slow) var(--ease-out-quint);
+}
+.limit.is-over .limit__label {
+  color: var(--sign-ring);
+  font-weight: 500;
+}
+
+.next-turn__arrow {
+  display: inline-flex;
 }

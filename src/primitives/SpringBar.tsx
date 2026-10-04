@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
-import { isMotionValue, motion, motionValue, useSpring, useTransform, type MotionValue } from "motion/react";
-import { springOptions } from "../motion/tokens";
+import { animate, isMotionValue, motion, motionValue, useSpring, useTransform, type MotionValue } from "motion/react";
+import { ease, springOptions } from "../motion/tokens";
 import { useMotionPrefs } from "../motion/MotionProfileProvider";
 import "./primitives.css";
 
@@ -19,6 +19,8 @@ export function SpringBar({
   fillStyle,
   children,
   fillChildren,
+  follow = "spring",
+  linearStep = 0.1,
 }: {
   /** 0 to 1, as a number or a live motion value. */
   value: number | MotionValue<number>;
@@ -31,6 +33,12 @@ export function SpringBar({
   children?: ReactNode;
   /** Overlays inside the fill itself, so they only show on the filled part (the accent sweep). */
   fillChildren?: ReactNode;
+  /**
+   * spring (default): spring-value. linear: constant motion between updates arriving every
+   * `linearStep` seconds (media progress); a step backwards (new track) jumps.
+   */
+  follow?: "spring" | "linear";
+  linearStep?: number;
 }) {
   const { reduced } = useMotionPrefs();
   const own = useRef<MotionValue<number> | null>(null);
@@ -42,10 +50,22 @@ export function SpringBar({
 
   const level = useSpring(from ?? source.get(), springOptions("value"));
   useEffect(() => {
-    const follow = (v: number) => (reduced ? level.jump(v) : level.set(v));
-    follow(source.get());
-    return source.on("change", follow);
-  }, [source, level, reduced]);
+    let run: { stop: () => void } | null = null;
+    const update = (v: number) => {
+      if (follow === "linear") {
+        run?.stop();
+        if (v < level.get()) level.jump(v);
+        else run = animate(level, v, { duration: linearStep, ease: ease.linear });
+      } else if (reduced) level.jump(v);
+      else level.set(v);
+    };
+    update(source.get());
+    const off = source.on("change", update);
+    return () => {
+      off();
+      run?.stop();
+    };
+  }, [source, level, reduced, follow, linearStep]);
 
   const transform = useTransform(level, (p) => `translateX(${(clamp01(p) - 1) * 100}%)`);
 

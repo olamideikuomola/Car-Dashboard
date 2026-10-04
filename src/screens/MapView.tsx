@@ -1,7 +1,9 @@
-import { motion, useTransform } from "motion/react";
-import { DrawPath } from "../primitives/DrawPath";
+import { useEffect } from "react";
+import { animate, motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import { wakeDelay } from "../motion/wake";
-import { M_PER_UNIT, ROUTE_D, START_S, pointAt } from "../sim/route";
+import { springOptions, tween } from "../motion/tokens";
+import { useMotionPrefs } from "../motion/MotionProfileProvider";
+import { M_PER_UNIT, ROUTE_D, ROUTE_LENGTH, START_S, pointAt } from "../sim/route";
 import { live } from "../sim/useVehicleSim";
 
 /**
@@ -52,17 +54,54 @@ export function anchorAt(s: number) {
   return { x: REST.x + (VIEW.x - REST.x) * k, y: REST.y + (VIEW.y - REST.y) * k };
 }
 
+/** A jump bigger than this (map units) is a teleport (loop restart, demo Turn): snap, don't glide. */
+const TELEPORT = 40;
+const ROUTE_FADED = 0.3;
+
+/**
+ * Pans with the car on spring-value while the puck rotates with heading. The route ahead of the
+ * car is drawn (pathLength from the car to the end); the route behind fades. During wake-up the
+ * line ahead draws itself on. Motion values only; nothing here re-renders React per frame.
+ */
 export function MapView({ waking = false }: { waking?: boolean }) {
-  const worldTransform = useTransform(live.routeS, (s) => {
-    const p = pointAt(s);
-    const a = anchorAt(s);
+  const { reduced } = useMotionPrefs();
+  const s = useSpring(live.routeS.get(), springOptions("value"));
+  const heading = useSpring(pointAt(live.routeS.get()).heading, springOptions("expressive"));
+  useEffect(() => {
+    const follow = (v: number) => {
+      if (Math.abs(v - s.get()) > TELEPORT) {
+        s.jump(v);
+        heading.jump(pointAt(v).heading);
+      } else {
+        s.set(v);
+        heading.set(pointAt(v).heading);
+      }
+    };
+    return live.routeS.on("change", follow);
+  }, [s, heading]);
+
+  // Wake-up: the line ahead draws on from the car outward.
+  const drawn = useMotionValue(waking && !reduced ? 0 : 1);
+  useEffect(() => {
+    if (!waking || reduced) return;
+    const c = animate(drawn, 1, { ...tween("xslow", "inOutQuart"), delay: wakeDelay("route") });
+    return () => c.stop();
+  }, [waking, reduced, drawn]);
+
+  const worldTransform = useTransform(s, (v) => {
+    const p = pointAt(v);
+    const a = anchorAt(v);
     return `translate(${a.x - p.x}px, ${a.y - p.y}px)`;
   });
-  const puckTransform = useTransform(live.routeS, (s) => {
-    const a = anchorAt(s);
-    return `translate(${a.x}px, ${a.y}px) rotate(${pointAt(s).heading}deg)`;
+  const puckTransform = useTransform(() => {
+    const a = anchorAt(s.get());
+    return `translate(${a.x}px, ${a.y}px) rotate(${heading.get()}deg)`;
   });
+  const done = useTransform(s, (v) => Math.min(1, Math.max(0, v / ROUTE_LENGTH)));
+  const aheadLength = useTransform(() => (1 - done.get()) * drawn.get());
+  const behindOpacity = useTransform(drawn, (d) => d * ROUTE_FADED);
 
+  const routeProps = { d: ROUTE_D, stroke: "var(--accent-default)", strokeWidth: 15.8462, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
   return (
     <svg className="map" width="780" height="560" viewBox="0 0 780 560" aria-hidden="true">
       <motion.g className="map__world" style={{ transform: worldTransform }}>
@@ -70,16 +109,9 @@ export function MapView({ waking = false }: { waking?: boolean }) {
           <path key={i} d={b.d} fill={b.park ? "var(--map-park)" : "var(--map-block)"} />
         ))}
         <path d={ROADS_D} stroke="var(--map-road)" strokeWidth={34.8615} fill="none" />
-        <DrawPath
-          className="map__route"
-          d={ROUTE_D}
-          draw={waking ? { duration: "xslow", delay: wakeDelay("route") } : undefined}
-          stroke="var(--accent-default)"
-          strokeWidth={15.8462}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
+        {/* Behind the car: the whole route, faded. Ahead: drawn from the car to the end. */}
+        <motion.path className="map__route-behind" {...routeProps} style={{ opacity: behindOpacity }} />
+        <motion.path className="map__route" {...routeProps} style={{ pathOffset: done, pathLength: aheadLength }} />
       </motion.g>
       <motion.g className="map__puck" style={{ transform: puckTransform }}>
         <ellipse cx="0" cy="0" rx="18" ry="23.769" fill="var(--accent-default)" opacity={0.25} />

@@ -1,17 +1,12 @@
 /* Shared components. Values from Figma frames 4:2, 5:66, 5:186 and the Components page 3:2. */
 
-/* Pressables: crisp press feedback, transform only. */
-.pressable,
+/* Press feedback lives in PressScale (spring-press). Colour changes ride CSS transitions. */
 .icon-btn,
-.temp-btn,
-.pill-btn {
-  transition: transform var(--move-duration-press) var(--ease-out-quint);
-}
-.pressable:active,
-.icon-btn:active,
-.temp-btn:active,
-.pill-btn:active {
-  transform: scale(var(--move-press-scale));
+.climate__pill,
+.dock__item {
+  transition:
+    background-color var(--duration-normal) var(--ease-out-quint),
+    color var(--duration-normal) var(--ease-out-quint);
 }
 
 /* Hit area extension for controls drawn smaller than 56px in Figma. */
