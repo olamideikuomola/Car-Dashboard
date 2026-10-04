@@ -75,6 +75,8 @@ const paths = {
       <path d="M8 5.14V18.86C8 19.65 8.87 20.13 9.54 19.7L20.33 12.85C20.95 12.46 20.95 11.54 20.33 11.15L9.54 4.3C8.87 3.87 8 4.35 8 5.14Z" />
     </g>
   ),
+  /** Not in the Figma set: Add stop resolves to this. Same 2px stroke and round caps as the set. */
+  check: <path d="M5 12.5L10 17.5L19 7" />,
   "chevron-left": <path d="M15 5L8 12L15 19" />,
   sparkle: <path d="M12 3L13.8 7.7L18.5 9.5L13.8 11.3L12 16L10.2 11.3L5.5 9.5L10.2 7.7L12 3Z" />,
   minus: <path d="M5 12H19" />,

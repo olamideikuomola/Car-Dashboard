@@ -1,0 +1,77 @@
+/* Primitives. Motion-driven parts set transform from Motion; CSS here is layout only. */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* RollingNumber */
+.rolling {
+  display: inline-flex;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+.rolling__slot {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  /* Let tall glyphs (the speed numeral's 0.82 line height) through without changing layout. */
+  padding-block: var(--roll-pad, 0.12em);
+  margin-block: calc(-1 * var(--roll-pad, 0.12em));
+}
+.rolling__ghost {
+  visibility: hidden;
+}
+.rolling__digit {
+  position: absolute;
+  inset: var(--roll-pad, 0.12em) 0 auto 0;
+}
+.rolling__static {
+  display: inline-block;
+}
+
+/* SpringBar */
+.spring-bar {
+  position: relative;
+  overflow: hidden;
+}
+.spring-bar__fill {
+  position: absolute;
+  inset: 0;
+  transition: background-color var(--duration-slow) var(--ease-out-quint);
+}
+
+/* SharedIndicator */
+.indicator-group {
+  position: relative;
+}
+.indicator-group__pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+.indicator-group__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* MorphIcon */
+.morph-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+.morph-icon > * {
+  grid-area: 1 / 1;
+}
+.indicator-group__labels.indicator-group__labels {
+  background: transparent;
+  margin: 0;
+}

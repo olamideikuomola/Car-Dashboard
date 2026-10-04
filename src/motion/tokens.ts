@@ -55,6 +55,33 @@ export const spring = {
 
 export type SpringToken = keyof typeof spring;
 
+/** A spring token in the shape useSpring takes (no `type` key). */
+export function springOptions(t: SpringToken) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { type, ...rest } = spring[t];
+  return rest as { stiffness?: number; damping?: number; mass?: number; visualDuration?: number; bounce?: number };
+}
+
+/** Digit roll inside RollingNumber: as quick as press feedback, no bounce, so a digit is never mid-swap for long. */
+export const rollSpring = { type: "spring", visualDuration: ms.press / 1000, bounce: 0 } as const;
+
+/**
+ * Spring for an indicator (gear pill, mode thumb, dock background) that overshoots by exactly the
+ * amplitude token: 3% of travel up to 8px (expressive) or 6% up to 16px (dramatic). The visual
+ * duration stays the token's; only bounce is solved from the wanted overshoot ratio, using
+ * overshoot = exp(-z pi / sqrt(1 - z^2)) with damping ratio z = 1 - bounce.
+ */
+export function indicatorSpring(mode: StaggerMode, travelPx: number) {
+  const base = mode === "dramatic" ? spring.dramatic : spring.expressive;
+  const travel = Math.abs(travelPx);
+  if (travel < 1) return base;
+  const o = amp.overshoot[mode];
+  const ratio = Math.min(o.ratio, o.maxPx / travel);
+  const ln = Math.log(ratio);
+  const zeta = -ln / Math.sqrt(Math.PI * Math.PI + ln * ln);
+  return { type: "spring" as const, visualDuration: base.visualDuration, bounce: Math.max(0, Math.min(0.6, 1 - zeta)) };
+}
+
 /** Amplitudes. The only raw numbers allowed in component code come from here. */
 export const amp = {
   pressScale: 0.96,

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { MotionProfileProvider } from "./motion/MotionProfileProvider";
 import { Stage } from "./Stage";
 import { TokenCheck } from "./scratch/TokenCheck";
+import { Primitives } from "./scratch/Primitives";
 import { Drive } from "./screens/Drive";
 import { VehicleHealth } from "./screens/VehicleHealth";
 import { DemoPanel } from "./demo/DemoPanel";
@@ -21,7 +22,9 @@ export function App() {
 
   return (
     <MotionProfileProvider profile={profile}>
-      <Stage>{scratch === "tokens" ? <TokenCheckBound /> : screen === "drive" ? <Drive /> : <VehicleHealth />}</Stage>
+      <Stage>
+        {scratch === "tokens" ? <TokenCheckBound /> : scratch === "primitives" ? <Primitives /> : screen === "drive" ? <Drive /> : <VehicleHealth />}
+      </Stage>
       <DemoPanel />
     </MotionProfileProvider>
   );

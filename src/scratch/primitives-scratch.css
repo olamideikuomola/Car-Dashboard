@@ -1,0 +1,29 @@
+.prim { position: absolute; inset: 24px; display: grid; grid-template-rows: auto 1fr; gap: 16px; color: var(--text-primary); }
+.prim__head { display: flex; justify-content: space-between; align-items: center; }
+.prim__head h1 { margin: 0; font-size: 24px; font-weight: 500; }
+.prim__grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 16px; min-height: 0; }
+.prim__card { background: var(--surface-panel); border-radius: 24px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; min-height: 0; overflow: hidden; }
+.prim__card h2 { margin: 0; font-size: 18px; font-weight: 500; }
+.prim__note { margin: -8px 0 0; font-size: 13px; color: var(--text-muted); line-height: 1.4; }
+.prim__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.prim__row--end { align-items: flex-end; gap: 28px; }
+.prim__row--top { align-items: flex-start; }
+.prim__btn { min-height: 40px; padding: 0 14px; border-radius: 12px; background: var(--surface-panel-2); font-size: 14px; }
+.prim__speed { font-size: 120px; font-weight: 200; line-height: 0.82; letter-spacing: -5px; }
+.prim__mid { font-size: 40px; font-family: var(--font-mono); font-weight: 500; }
+.prim__live { display: flex; flex-direction: column; gap: 10px; }
+.prim__stack { display: grid; gap: 18px; }
+.prim__bar { height: 10px; border-radius: 6px; background: var(--surface-panel-2); }
+.prim__bar--thin { height: 4px; border-radius: 2px; }
+.prim__fill { border-radius: inherit; background: var(--accent-default); }
+.prim__fill--low { background: var(--status-warning); }
+.prim__fill--media { background: var(--text-primary); }
+.prim__gear-pill { border-radius: 10px; background: var(--text-primary); }
+.prim__gear { position: relative; z-index: 1; transition: color var(--duration-slow) var(--ease-out-quint); }
+.prim__gear.is-sel { color: var(--surface-bg); }
+.prim__thumb { border-radius: 13px; background: var(--text-primary); }
+.prim__seg { position: relative; display: flex; align-items: center; justify-content: center; }
+.prim__seg--active { color: var(--surface-bg); }
+.prim__dock { background: var(--surface-panel-2); }
+.prim__add { display: inline-flex; align-items: center; gap: 8px; }
+.prim__svg { border-radius: 16px; background: var(--map-bg); }
