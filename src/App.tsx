@@ -31,16 +31,13 @@ export function App() {
         ) : scratch === "primitives" ? (
           <Primitives />
         ) : (
-          // Both screens overlap during the shared-card transition; Health always stacks above Drive.
-          <AnimatePresence initial={false}>
-            {screen === "drive" ? (
-              <DriveLayer key="drive">
-                <Drive key={wakeKey} />
-              </DriveLayer>
-            ) : (
-              <VehicleHealth key="health" />
-            )}
-          </AnimatePresence>
+          // Drive stays mounted under Vehicle health (no rebuild on Back); Health mounts on top.
+          <>
+            <DriveLayer shown={screen === "drive"}>
+              <Drive key={wakeKey} />
+            </DriveLayer>
+            <AnimatePresence initial={false}>{screen === "health" && <VehicleHealth key="health" />}</AnimatePresence>
+          </>
         )}
       </Stage>
       <DemoPanel />
@@ -60,10 +57,19 @@ function TokenCheckBound() {
   );
 }
 
-/** Drive fades out under the expanding card, and back in under the shrinking one. */
-function DriveLayer({ children }: { children: ReactNode }) {
+/**
+ * Drive fades out under the expanding card and back in under the shrinking one. While hidden it
+ * stays mounted but is invisible and inert: no paint, no focus, nothing to rebuild on Back.
+ */
+function DriveLayer({ shown, children }: { shown: boolean; children: ReactNode }) {
   return (
-    <motion.div className="screen-layer screen-layer--drive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={tween("normal")}>
+    <motion.div
+      className="screen-layer screen-layer--drive"
+      initial={false}
+      animate={shown ? { opacity: 1, visibility: "visible" } : { opacity: 0, transitionEnd: { visibility: "hidden" } }}
+      transition={tween("normal")}
+      inert={!shown}
+    >
       {children}
     </motion.div>
   );

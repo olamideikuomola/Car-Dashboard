@@ -235,7 +235,8 @@ export const useVehicle = create<VehicleState & Actions>()((set, get) => ({
     set({ [key]: next } as Pick<VehicleState, typeof key>);
   },
   toggleAc: () => set({ ac: !get().ac }),
-  cycleFan: () => set({ fan: (get().fan % 5) + 1 }),
+  // 0 is off: the fan icon stops, so its spin always has an off state.
+  cycleFan: () => set({ fan: (get().fan + 1) % 6 }),
   toggleDefrost: () => set({ defrost: !get().defrost }),
   toggleSeatHeat: () => set({ seatHeat: !get().seatHeat }),
   setDock: (dock) => set({ dock }),

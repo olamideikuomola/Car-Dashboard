@@ -43,6 +43,8 @@
 .spring-bar__fill {
   position: absolute;
   inset: 0;
+  /* Its own compositor layer: the level moves by transform without repainting the panel. */
+  will-change: transform;
   transition: background-color var(--duration-slow) var(--ease-out-quint);
 }
 

@@ -178,6 +178,8 @@ function SpeedReadout({ waking }: { waking: boolean }) {
 }
 
 const RING_R = 38;
+const OVER_CLEAR_KMH = 2;
+const OVER_PULSE_COOLDOWN_MS = 5000;
 const RING_W = 8;
 const RING_W_OVER = 12;
 
@@ -195,10 +197,12 @@ function LimitSign({ waking }: { waking: boolean }) {
   const pulse = useMotionValue(1);
   const transform = useTransform([rot, pulse], ([r, p]) => `perspective(400px) rotateY(${r}deg) scale(${p})`);
 
-  // Over the limit, judged on the displayed (rounded) speed.
+  // Over the limit, judged on the displayed (rounded) speed, with hysteresis: it clears only
+  // 2 km/h under the limit, so a speed hovering at the limit can't re-trigger the pulse.
   useMotionValueEvent(live.speed, "change", (v) => {
-    const o = Math.round(v) > limit;
-    if (o !== over) setOver(o);
+    const kmh = Math.round(v);
+    if (!over && kmh > limit) setOver(true);
+    else if (over && kmh <= limit - OVER_CLEAR_KMH) setOver(false);
   });
   useEffect(() => setOver(Math.round(live.speed.get()) > limit), [limit]);
 
@@ -228,8 +232,12 @@ function LimitSign({ waking }: { waking: boolean }) {
   }, [limit]);
 
   // Two pulses when going over, then hold. Not user-reversible, so keyframes are fine here.
+  // At most once per cooldown, however often the state flips.
+  const lastPulse = useRef(-Infinity);
   useEffect(() => {
     if (!over || reduced) return;
+    if (performance.now() - lastPulse.current < OVER_PULSE_COOLDOWN_MS) return;
+    lastPulse.current = performance.now();
     const c = animate(pulse, [1, amp.scalePeakStrong, 1, amp.scalePeakStrong, 1], { duration: duration.slow * 2, ease: ease.inOutQuart });
     return () => c.stop();
   }, [over, reduced, pulse]);
@@ -430,12 +438,14 @@ function VehicleCard() {
   const mounted = useRef(false);
   useEffect(() => void (mounted.current = true), []);
   // Coming back from Vehicle health: focus returns to whatever opened it.
+  const screen = useVehicle((v) => v.screen);
   useEffect(() => {
+    if (screen !== "drive") return;
     const from = takeOpener();
     if (!from) return;
     const target = card.current?.querySelector<HTMLElement>(from === "alert" ? ".alert" : ".vehicle__link") ?? card.current?.querySelector<HTMLElement>(".vehicle__link");
     target?.focus({ preventScroll: true });
-  }, []);
+  }, [screen]);
 
   return (
     <div ref={card} className="vehicle__inner">

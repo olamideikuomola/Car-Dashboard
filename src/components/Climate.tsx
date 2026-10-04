@@ -1,11 +1,11 @@
-import { useRef, useState } from "react";
-import { motion, useAnimationFrame, useMotionValue, useTransform } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
 import { Icon, type IconName } from "./icons/Icon";
 import { IconButton } from "./IconButton";
 import { PressScale } from "../primitives/PressScale";
 import { SharedIndicator } from "../primitives/SharedIndicator";
 import { RollingText } from "../primitives/RollingNumber";
-import { fanDegPerSecPerLevel, tween } from "../motion/tokens";
+import { ease, fanDegPerSecPerLevel, tween } from "../motion/tokens";
 import { useMotionPrefs } from "../motion/MotionProfileProvider";
 import type { Dock } from "../sim/types";
 
@@ -41,20 +41,39 @@ export function AcButton({ on, onToggle }: { on: boolean; onToggle: () => void }
   );
 }
 
-/** Fan. The icon turns at a speed set by the level: constant motion, so linear, and it retargets without restarting. */
+/**
+ * Fan. The icon turns at a speed set by the level. One infinite WAAPI rotation runs on the
+ * compositor; a level change only sets its playbackRate, so it speeds up without restarting.
+ * Constant motion, so linear. Stops under reduced motion and at level 0.
+ */
 export function FanButton({ level, onCycle }: { level: number; onCycle: () => void }) {
   const { reduced } = useMotionPrefs();
-  const angle = useMotionValue(0);
-  const transform = useTransform(angle, (a) => `rotate(${a}deg)`);
-  useAnimationFrame((_, delta) => {
-    if (reduced || level <= 0) return;
-    angle.set((angle.get() + (delta / 1000) * fanDegPerSecPerLevel * level) % 360);
-  });
+  const icon = useRef<HTMLSpanElement>(null);
+  const spin = useRef<Animation | null>(null);
+  useEffect(() => {
+    const el = icon.current;
+    if (!el) return;
+    spin.current = el.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
+      duration: (360 / fanDegPerSecPerLevel) * 1000,
+      iterations: Infinity,
+      easing: ease.linear,
+    });
+    return () => spin.current?.cancel();
+  }, []);
+  useEffect(() => {
+    const a = spin.current;
+    if (!a) return;
+    if (reduced || level <= 0) a.pause();
+    else {
+      a.playbackRate = level;
+      a.play();
+    }
+  }, [level, reduced]);
   return (
-    <PressScale className="climate__pill climate__fan" aria-label={`Fan level ${level}`} onClick={onCycle}>
-      <motion.span className="fan-icon" style={{ transform }}>
+    <PressScale className="climate__pill climate__fan" aria-label={level === 0 ? "Fan off" : `Fan level ${level}`} onClick={onCycle}>
+      <span ref={icon} className="fan-icon">
         <Icon name="fan" />
-      </motion.span>
+      </span>
       <RollingText className="mono" text={String(level)} />
     </PressScale>
   );

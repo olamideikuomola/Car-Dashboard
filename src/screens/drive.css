@@ -201,7 +201,24 @@
 .map {
   position: absolute;
   inset: 0;
+}
+.map__layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 780px;
+  height: 560px;
+  will-change: transform;
+}
+.map__layer--puck {
+  width: 60px;
+  height: 60px;
+  transform-origin: 30px 30px;
+}
+/* World coordinates run past the panel (negative and beyond 780 by 560); let them paint. */
+.map__svg {
   display: block;
+  overflow: visible;
 }
 .next-turn-slot {
   position: absolute;

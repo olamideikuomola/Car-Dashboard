@@ -57,6 +57,7 @@ export function anchorAt(s: number) {
 /** A jump bigger than this (map units) is a teleport (loop restart, demo Turn): snap, don't glide. */
 const TELEPORT = 40;
 const ROUTE_FADED = 0.3;
+const ROUTE_STEP = 4;
 
 /**
  * Pans with the car on spring-value while the puck rotates with heading. The route ahead of the
@@ -95,36 +96,48 @@ export function MapView({ waking = false }: { waking?: boolean }) {
   });
   const puckTransform = useTransform(() => {
     const a = anchorAt(s.get());
-    return `translate(${a.x}px, ${a.y}px) rotate(${heading.get()}deg)`;
+    return `translate(${a.x - 30}px, ${a.y - 30}px) rotate(${heading.get()}deg)`;
   });
-  const done = useTransform(s, (v) => Math.min(1, Math.max(0, v / ROUTE_LENGTH)));
+  // The ahead/behind boundary sits under the puck, so it only needs to move in small steps.
+  // Quantising stops the route layer repainting every frame (one repaint a second at cruise).
+  const done = useTransform(s, (v) => Math.min(1, Math.max(0, (Math.round(v / ROUTE_STEP) * ROUTE_STEP) / ROUTE_LENGTH)));
   const aheadLength = useTransform(() => (1 - done.get()) * drawn.get());
   const behindOpacity = useTransform(drawn, (d) => d * ROUTE_FADED);
 
   const routeProps = { d: ROUTE_D, stroke: "var(--accent-default)", strokeWidth: 15.8462, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  // Three layers, each a transformed div so Chrome composites it: panning moves pixels instead of
+  // repainting the map. Only the small route layer repaints, as the line ahead shortens.
   return (
-    <svg className="map" width="780" height="560" viewBox="0 0 780 560" aria-hidden="true">
-      <motion.g className="map__world" style={{ transform: worldTransform }}>
-        {BLOCKS.map((b, i) => (
-          <path key={i} d={b.d} fill={b.park ? "var(--map-park)" : "var(--map-block)"} />
-        ))}
-        <path d={ROADS_D} stroke="var(--map-road)" strokeWidth={34.8615} fill="none" />
-        {/* Behind the car: the whole route, faded. Ahead: drawn from the car to the end. */}
-        <motion.path className="map__route-behind" {...routeProps} style={{ opacity: behindOpacity }} />
-        <motion.path className="map__route" {...routeProps} style={{ pathOffset: done, pathLength: aheadLength }} />
-      </motion.g>
-      <motion.g className="map__puck" style={{ transform: puckTransform }}>
-        <ellipse cx="0" cy="0" rx="18" ry="23.769" fill="var(--accent-default)" opacity={0.25} />
-        {/* Outline added (not in Figma): the arrow is accent on an accent route and disappears without it. */}
-        <path
-          d="M0 -18.487L11 15.847L0 7.924L-11 15.847L0 -18.487Z"
-          fill="var(--accent-default)"
-          stroke="var(--surface-panel)"
-          strokeWidth={3}
-          strokeLinejoin="round"
-          paintOrder="stroke"
-        />
-      </motion.g>
-    </svg>
+    <div className="map" aria-hidden="true">
+      <motion.div className="map__layer" style={{ transform: worldTransform }}>
+        <svg className="map__svg" width="780" height="560" viewBox="0 0 780 560">
+          {BLOCKS.map((b, i) => (
+            <path key={i} d={b.d} fill={b.park ? "var(--map-park)" : "var(--map-block)"} />
+          ))}
+          <path d={ROADS_D} stroke="var(--map-road)" strokeWidth={34.8615} fill="none" />
+        </svg>
+      </motion.div>
+      <motion.div className="map__layer" style={{ transform: worldTransform }}>
+        <svg className="map__svg" width="780" height="560" viewBox="0 0 780 560">
+          {/* Behind the car: the whole route, faded. Ahead: drawn from the car to the end. */}
+          <motion.path className="map__route-behind" {...routeProps} style={{ opacity: behindOpacity }} />
+          <motion.path className="map__route" {...routeProps} style={{ pathOffset: done, pathLength: aheadLength }} />
+        </svg>
+      </motion.div>
+      <motion.div className="map__layer map__layer--puck" style={{ transform: puckTransform }}>
+        <svg className="map__svg" width="60" height="60" viewBox="-30 -30 60 60">
+          <ellipse cx="0" cy="0" rx="18" ry="23.769" fill="var(--accent-default)" opacity={0.25} />
+          {/* Outline added (not in Figma): the arrow is accent on an accent route and disappears without it. */}
+          <path
+            d="M0 -18.487L11 15.847L0 7.924L-11 15.847L0 -18.487Z"
+            fill="var(--accent-default)"
+            stroke="var(--surface-panel)"
+            strokeWidth={3}
+            strokeLinejoin="round"
+            paintOrder="stroke"
+          />
+        </svg>
+      </motion.div>
+    </div>
   );
 }
