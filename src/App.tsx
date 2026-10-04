@@ -15,6 +15,7 @@ export function App() {
   const theme = useVehicle((s) => s.theme);
   const profile = useVehicle((s) => s.profile);
   const screen = useVehicle((s) => s.screen);
+  const wakeKey = useVehicle((s) => s.wakeKey);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -23,7 +24,7 @@ export function App() {
   return (
     <MotionProfileProvider profile={profile}>
       <Stage>
-        {scratch === "tokens" ? <TokenCheckBound /> : scratch === "primitives" ? <Primitives /> : screen === "drive" ? <Drive /> : <VehicleHealth />}
+        {scratch === "tokens" ? <TokenCheckBound /> : scratch === "primitives" ? <Primitives /> : screen === "drive" ? <Drive key={wakeKey} /> : <VehicleHealth />}
       </Stage>
       <DemoPanel />
     </MotionProfileProvider>

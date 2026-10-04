@@ -1,4 +1,6 @@
 import { motion, useTransform } from "motion/react";
+import { DrawPath } from "../primitives/DrawPath";
+import { wakeDelay } from "../motion/wake";
 import { M_PER_UNIT, ROUTE_D, START_S, pointAt } from "../sim/route";
 import { live } from "../sim/useVehicleSim";
 
@@ -50,7 +52,7 @@ export function anchorAt(s: number) {
   return { x: REST.x + (VIEW.x - REST.x) * k, y: REST.y + (VIEW.y - REST.y) * k };
 }
 
-export function MapView() {
+export function MapView({ waking = false }: { waking?: boolean }) {
   const worldTransform = useTransform(live.routeS, (s) => {
     const p = pointAt(s);
     const a = anchorAt(s);
@@ -68,9 +70,10 @@ export function MapView() {
           <path key={i} d={b.d} fill={b.park ? "var(--map-park)" : "var(--map-block)"} />
         ))}
         <path d={ROADS_D} stroke="var(--map-road)" strokeWidth={34.8615} fill="none" />
-        <path
+        <DrawPath
           className="map__route"
           d={ROUTE_D}
+          draw={waking ? { duration: "xslow", delay: wakeDelay("route") } : undefined}
           stroke="var(--accent-default)"
           strokeWidth={15.8462}
           strokeLinecap="round"

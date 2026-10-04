@@ -18,6 +18,7 @@ export function SpringBar({
   fillClassName = "",
   fillStyle,
   children,
+  fillChildren,
 }: {
   /** 0 to 1, as a number or a live motion value. */
   value: number | MotionValue<number>;
@@ -26,8 +27,10 @@ export function SpringBar({
   className?: string;
   fillClassName?: string;
   fillStyle?: React.CSSProperties;
-  /** Overlays inside the clipped track, such as an accent sweep. */
+  /** Overlays inside the clipped track. */
   children?: ReactNode;
+  /** Overlays inside the fill itself, so they only show on the filled part (the accent sweep). */
+  fillChildren?: ReactNode;
 }) {
   const { reduced } = useMotionPrefs();
   const own = useRef<MotionValue<number> | null>(null);
@@ -48,7 +51,9 @@ export function SpringBar({
 
   return (
     <div className={`spring-bar ${className}`}>
-      <motion.div className={`spring-bar__fill ${fillClassName}`} style={{ ...fillStyle, transform }} />
+      <motion.div className={`spring-bar__fill ${fillClassName}`} style={{ ...fillStyle, transform }}>
+        {fillChildren}
+      </motion.div>
       {children}
     </div>
   );

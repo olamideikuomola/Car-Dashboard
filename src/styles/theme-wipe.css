@@ -1,0 +1,39 @@
+/*
+ * Theme wipe (see src/motion/themeSwitch.ts). The new snapshot is masked by a gradient two and a
+ * half screens wide; sliding the mask reveals it from left to right behind a soft edge a fifth of
+ * the screen wide. A one-shot browser transition, so keyframes are fine here: a second tap starts a
+ * new transition rather than reversing this one.
+ */
+html[data-theme-fx="wipe"]::view-transition-old(root) {
+  animation: none;
+}
+html[data-theme-fx="wipe"]::view-transition-new(root) {
+  animation: theme-wipe var(--duration-xslow) var(--ease-in-out-quart) both;
+  -webkit-mask-image: linear-gradient(90deg, #000 46%, transparent 54%);
+  mask-image: linear-gradient(90deg, #000 46%, transparent 54%);
+  -webkit-mask-size: 250% 100%;
+  mask-size: 250% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+@keyframes theme-wipe {
+  from {
+    -webkit-mask-position: 100% 0;
+    mask-position: 100% 0;
+  }
+  to {
+    -webkit-mask-position: 0% 0;
+    mask-position: 0% 0;
+  }
+}
+
+html[data-theme-fx="fade"]::view-transition-old(root),
+html[data-theme-fx="fade"]::view-transition-new(root) {
+  animation-duration: var(--duration-short);
+  animation-timing-function: var(--ease-out-quint);
+}
+
+/* The root group never moves or resizes; drop the browser's default 250ms group animation. */
+html[data-theme-fx]::view-transition-group(root) {
+  animation: none;
+}

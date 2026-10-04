@@ -29,6 +29,10 @@
   --map-park: #13201a;
   --map-road: #252a30;
 
+  /* Motion-only tints, not in Figma: P brightens secondary panels; the near-turn icon lifts. */
+  --park-lift: rgba(255, 255, 255, 0.035);
+  --near-lift: 0.22;
+
   color-scheme: dark;
 }
 
@@ -55,6 +59,9 @@
   --map-block: #cfd7e0;
   --map-park: #c9dccb;
   --map-road: #ffffff;
+
+  --park-lift: rgba(255, 255, 255, 0.45);
+  --near-lift: 0.18;
 
   color-scheme: light;
 }

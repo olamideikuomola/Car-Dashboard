@@ -10,7 +10,7 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { rollSpring, springOptions, type SpringToken } from "../motion/tokens";
+import { ms, rollSpring, springOptions, type SpringToken } from "../motion/tokens";
 import { useMotionPrefs } from "../motion/MotionProfileProvider";
 import "./primitives.css";
 
@@ -27,11 +27,13 @@ type Props = {
   /** Start the smoothed value from here on mount, e.g. 0 for a roll-up. */
   from?: number;
   className?: string;
+  /** Spoken before the value, e.g. "Speed" reads as "Speed 48". */
   "aria-label"?: string;
 };
 
 const round = (n: number) => String(Math.round(n));
 const isDigit = (c: string) => c >= "0" && c <= "9";
+const ROLL_TRAVEL = 125;
 
 /**
  * A number whose digits each roll vertically in their own clipped slot, in the direction of
@@ -88,7 +90,7 @@ export function RollingNumber({ value, format = round, smooth, from, className =
   const chars = text.split("");
   return (
     <span className={`rolling ${className}`}>
-      <span className="sr-only">{rest["aria-label"] ?? text}</span>
+      <span className="sr-only">{rest["aria-label"] ? `${rest["aria-label"]} ${text}` : text}</span>
       {chars.map((c, i) => {
         const place = chars.length - 1 - i;
         return isDigit(c) ? (
@@ -111,13 +113,19 @@ export function RollingNumber({ value, format = round, smooth, from, className =
 function DigitSlot({ digit, dir, instant }: { digit: string; dir: 1 | -1; instant: boolean }) {
   const [pair, setPair] = useState({ from: digit, to: digit, dir });
   const progress = useMotionValue(1);
+  const lastChange = useRef(-Infinity);
 
   useLayoutEffect(() => {
     if (digit === pair.to) return;
     // Whichever layer is mostly visible right now becomes the outgoing digit.
     const visible = progress.get() < 0.5 ? pair.from : pair.to;
     setPair({ from: visible, to: digit, dir });
-    if (instant) {
+    // Changing faster than a roll takes (a count-up): swap instantly so the digit is never
+    // stuck mid-roll; it reads as a crisp counter while slower digits keep rolling.
+    const now = performance.now();
+    const tooFast = now - lastChange.current < ms.press;
+    lastChange.current = now;
+    if (instant || tooFast) {
       progress.jump(1);
       setPair({ from: digit, to: digit, dir });
       return;
@@ -129,8 +137,10 @@ function DigitSlot({ digit, dir, instant }: { digit: string; dir: 1 | -1; instan
   }, [digit]);
 
   const d = pair.dir;
-  const outT = useTransform(progress, (p) => `translateY(${-d * p * 100}%)`);
-  const inT = useTransform(progress, (p) => `translateY(${d * (1 - p) * 100}%)`);
+  // Travel past the clip: the slot is padded so tall glyphs aren't cut, so a full line of travel
+  // would leave the next digit peeking in. 125% of the line box clears it at any line height.
+  const outT = useTransform(progress, (p) => `translateY(${-d * p * ROLL_TRAVEL}%)`);
+  const inT = useTransform(progress, (p) => `translateY(${d * (1 - p) * ROLL_TRAVEL}%)`);
 
   return (
     <span className="rolling__slot" aria-hidden="true">

@@ -4,14 +4,12 @@
 .pressable,
 .icon-btn,
 .temp-btn,
-.mode-seg,
 .pill-btn {
   transition: transform var(--move-duration-press) var(--ease-out-quint);
 }
 .pressable:active,
 .icon-btn:active,
 .temp-btn:active,
-.mode-seg:active,
 .pill-btn:active {
   transform: scale(var(--move-press-scale));
 }
@@ -74,8 +72,17 @@
   line-height: normal;
   color: var(--text-secondary);
 }
-.mode-seg.is-active {
+.mode-seg {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mode-thumb {
+  border-radius: 13px;
   background: var(--text-primary);
+}
+.mode-seg--on {
   color: var(--surface-bg);
 }
 

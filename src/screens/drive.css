@@ -49,8 +49,17 @@
   font-size: 20px;
   color: var(--text-muted);
 }
-.gear.is-active {
+.gear {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gear-pill {
+  border-radius: 10px;
   background: var(--text-primary);
+}
+.gear--on {
   color: var(--surface-bg);
 }
 .clock {
@@ -77,7 +86,11 @@
   gap: 14px;
   white-space: nowrap;
 }
+.speed__scale {
+  transform-origin: 0% 100%;
+}
 .speed__value {
+  --roll-pad: 0.06em;
   font-weight: 200;
   font-size: 196px;
   line-height: 0.82;
@@ -99,17 +112,22 @@
   padding-bottom: 8px;
 }
 .limit__sign {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 84px;
   height: 84px;
-  border-radius: 50%;
-  border: 8px solid var(--sign-ring);
-  background: var(--sign-bg);
   color: var(--sign-text);
   font-weight: 500;
   font-size: 30px;
+}
+.limit__svg {
+  position: absolute;
+  inset: 0;
+}
+.limit__value {
+  position: relative;
 }
 .limit__label {
   font-size: 15px;
@@ -156,12 +174,19 @@
   height: 10px;
   border-radius: 6px;
   background: var(--surface-panel-2);
-  overflow: hidden;
 }
 .battery__fill {
-  height: 100%;
   border-radius: 6px;
   background: var(--accent-default);
+}
+.battery__fill.is-low {
+  background: var(--status-warning);
+}
+/* Gear into D: one bright band crosses the filled part of the bar. */
+.battery__sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55) 50%, transparent);
 }
 
 /* Navigation panel */
@@ -178,10 +203,13 @@
   inset: 0;
   display: block;
 }
-.next-turn {
+.next-turn-slot {
   position: absolute;
   top: 20px;
   left: 20px;
+}
+.next-turn {
+  transform-origin: 0 0;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -191,6 +219,7 @@
   box-shadow: var(--shadow-float);
 }
 .next-turn__icon {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,10 +289,8 @@
   height: 4px;
   border-radius: 2px;
   background: var(--surface-panel-2);
-  overflow: hidden;
 }
 .trip__fill {
-  height: 100%;
   border-radius: 2px;
   background: var(--accent-default);
 }
@@ -400,10 +427,8 @@
   height: 4px;
   border-radius: 2px;
   background: var(--surface-panel-2);
-  overflow: hidden;
 }
 .media__progress-fill {
-  height: 100%;
   border-radius: 2px;
   background: var(--text-primary);
 }
@@ -463,4 +488,40 @@
 .dock__item.is-active {
   background: var(--surface-panel);
   color: var(--text-primary);
+}
+
+/* Under 100 m to the turn the icon fill brightens: a light layer fades in over the accent. */
+.next-turn__icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-out-quint);
+}
+.next-turn.is-near .next-turn__icon::after {
+  opacity: var(--near-lift);
+}
+.next-turn__icon > svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* In P the secondary panels brighten slightly: a faint light layer, opacity only. */
+.park-lift {
+  position: relative;
+}
+.park-lift::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--park-lift);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-slow) var(--ease-out-quint);
+}
+.drive[data-gear="P"] .park-lift::after {
+  opacity: 1;
 }

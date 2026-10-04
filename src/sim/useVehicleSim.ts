@@ -4,6 +4,8 @@ import { create } from "zustand";
 import type { DriveMode } from "../components/ModeSegment";
 import { M_PER_UNIT, START_S, TURNS, pointAt } from "./route";
 import type { Dock, Gear, MotionProfile, Screen, Theme, Track, Tyres, VehicleState } from "./types";
+import { startWake } from "../motion/wake";
+import { switchTheme } from "../motion/themeSwitch";
 
 /* ------------------------------------------------------------------ */
 /* Script                                                              */
@@ -39,7 +41,7 @@ export const TRACKS: Track[] = [
 
 /** Target speed for the scripted cruise, before turn caps and the gear are applied. */
 function cruiseTarget(t: number, limit: number) {
-  if (t < 1.5) return 0;
+  if (sim.fromRest && t < 1.5) return 0;
   if (t >= 80) return 0; // stopping at the lights before the loop restarts
   if (t >= 50 && t < 58) return 79; // the stretch over the limit
   return limit >= 70 ? 66 : 48;
@@ -59,7 +61,7 @@ const fmtClock = (min: number) => {
 
 export const live = {
   /** km/h, raw sim value. The UI smooths it with spring-value. */
-  speed: motionValue(0),
+  speed: motionValue(48),
   /** Metres to the next turn. */
   turnDistance: motionValue((TURNS[0].s - START_S) * M_PER_UNIT),
   /** Distance along the route, in map units. */
@@ -84,18 +86,21 @@ type Internal = {
   turnIdx: number;
   overUntil: number;
   trackClock: number;
+  /** False on the session's first pass (already cruising, as in Figma); true after each stop and loop. */
+  fromRest: boolean;
 };
 
 const sim: Internal = {
   t: 0,
   elapsed: 0,
-  speed: 0,
+  speed: 48,
   s: START_S,
   battery: 78,
   kmLeft: TRIP_KM,
   turnIdx: 0,
   overUntil: -1,
   trackClock: (165 / 392) * TRACK_S,
+  fromRest: false,
 };
 
 type Actions = {
@@ -169,11 +174,17 @@ export const useVehicle = create<VehicleState & Actions>()((set, get) => ({
   setGear: (gear) => set({ gear }),
   setMode: (mode) => set({ mode, range: Math.round(sim.battery * KM_PER_BATTERY_PCT * MODE_RANGE[mode]) }),
   setTheme: (theme) => set({ theme }),
-  toggleTheme: () => set({ theme: get().theme === "night" ? "day" : "night" }),
+  toggleTheme: () => {
+    const next = get().theme === "night" ? "day" : "night";
+    switchTheme(next, get().profile === "calm", () => set({ theme: next }));
+  },
   setScreen: (screen) => set({ screen }),
   setProfile: (profile) => set({ profile }),
   togglePaused: () => set({ paused: !get().paused }),
-  wake: () => set({ wakeKey: get().wakeKey + 1 }),
+  wake: () => {
+    startWake();
+    set({ wakeKey: get().wakeKey + 1 });
+  },
   newLimit: () => {
     const i = LIMIT_CYCLE.indexOf(get().limit);
     set({ limit: LIMIT_CYCLE[(i + 1) % LIMIT_CYCLE.length] });
@@ -218,6 +229,7 @@ function approach(v: number, target: number, up: number, down: number, dt: numbe
 
 function resetLoop() {
   sim.t = 0;
+  sim.fromRest = true;
   sim.s = START_S;
   sim.kmLeft = TRIP_KM;
   sim.turnIdx = 0;
