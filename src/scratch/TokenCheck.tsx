@@ -1,6 +1,6 @@
 import { useMotionPrefs, type MotionProfile } from "../motion/MotionProfileProvider";
 import { ms } from "../motion/tokens";
-import type { Theme } from "../App";
+import type { Theme } from "../sim/types";
 import "./scratch.css";
 
 const colors = [

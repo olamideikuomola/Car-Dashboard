@@ -1,0 +1,180 @@
+/* Shared components. Values from Figma frames 4:2, 5:66, 5:186 and the Components page 3:2. */
+
+/* Pressables: crisp press feedback, transform only. */
+.pressable,
+.icon-btn,
+.temp-btn,
+.mode-seg,
+.pill-btn {
+  transition: transform var(--move-duration-press) var(--ease-out-quint);
+}
+.pressable:active,
+.icon-btn:active,
+.temp-btn:active,
+.mode-seg:active,
+.pill-btn:active {
+  transform: scale(var(--move-press-scale));
+}
+
+/* Hit area extension for controls drawn smaller than 56px in Figma. */
+.hit-56 {
+  position: relative;
+}
+.hit-56::before {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: max(100%, var(--hit-w, 56px));
+  height: max(100%, 56px);
+  transform: translate(-50%, -50%);
+}
+
+/* Control/Icon button */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 16px;
+  color: var(--text-primary);
+}
+.icon-btn--tile {
+  background: var(--surface-panel-2);
+}
+.icon-btn--accent {
+  background: var(--accent-default);
+  color: var(--accent-on-accent);
+}
+.icon-btn--ghost {
+  background: transparent;
+}
+.icon-btn--solid {
+  background: var(--text-primary);
+  color: var(--surface-bg);
+}
+.icon-btn--round {
+  border-radius: 999px;
+}
+
+/* Control/Mode segment */
+.mode-track {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 18px;
+  background: var(--surface-panel-2);
+  width: 100%;
+}
+.mode-seg {
+  flex: 1 0 0;
+  height: 56px;
+  border-radius: 13px;
+  font-size: 19px;
+  font-weight: 500;
+  line-height: normal;
+  color: var(--text-secondary);
+}
+.mode-seg.is-active {
+  background: var(--text-primary);
+  color: var(--surface-bg);
+}
+
+/* Control/Temp stepper */
+.temp-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.temp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--surface-panel-2);
+  color: var(--text-primary);
+}
+.temp-value {
+  width: 112px;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--text-primary);
+}
+
+/* Data/Trip stat */
+.trip-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+  line-height: normal;
+}
+.trip-stat__label {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.trip-stat__value {
+  font-size: 22px;
+  color: var(--text-primary);
+}
+
+/* Data/List row */
+.list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  width: 100%;
+  border-top: 1px solid var(--border-line);
+  line-height: normal;
+  white-space: nowrap;
+}
+.list-row__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.list-row__name {
+  font-size: 18px;
+  color: var(--text-primary);
+}
+.list-row__state {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+}
+.status-dot {
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--dot, var(--text-muted));
+}
+.list-row--ok {
+  --dot: var(--status-ok);
+}
+.list-row--warning {
+  --dot: var(--status-warning);
+}
+.list-row--warning .list-row__state {
+  color: var(--status-warning-text);
+}
+.list-row--accent {
+  --dot: var(--accent-default);
+}
+.list-row--accent .list-row__state {
+  color: var(--accent-default);
+}
+
+/* Panels */
+.panel {
+  background: var(--surface-panel);
+  border-radius: 24px;
+  overflow: hidden;
+}

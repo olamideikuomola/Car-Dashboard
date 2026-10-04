@@ -58,3 +58,15 @@
 
   color-scheme: light;
 }
+
+/*
+ * Fixed values used raw in Figma (not variables). The speed limit sign is a regulatory sign,
+ * so it keeps the same colours in both themes. The card shadow is the same in both frames.
+ */
+:root {
+  --sign-bg: #ffffff;
+  --sign-ring: #e5484d;
+  --sign-text: #111214;
+  --shadow-float: 0 8px 30px rgba(0, 0, 0, 0.18);
+  --art-gradient: linear-gradient(129.73deg, #f2b35b 14.18%, #e46a4e 53.19%, #6c5bd9 85.11%);
+}

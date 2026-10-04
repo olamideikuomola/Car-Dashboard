@@ -1,0 +1,193 @@
+/* Vehicle health. Measurements from Figma 5:186. */
+
+.health {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  line-height: normal;
+}
+.health__main {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px 32px;
+}
+.health__header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.health__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: nowrap;
+}
+.health__title {
+  margin: 0;
+  font-weight: 500;
+  font-size: 30px;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+}
+.health__sub {
+  margin: 0;
+  font-size: 17px;
+  color: var(--text-secondary);
+}
+
+.tyres {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+}
+.tyres__col {
+  display: flex;
+  flex-direction: column;
+  gap: 230px;
+}
+.tyres__col--left {
+  align-items: flex-end;
+}
+.tyres__col--right {
+  align-items: flex-start;
+}
+.car-top {
+  display: block;
+  flex-shrink: 0;
+}
+.tyre {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  white-space: nowrap;
+}
+.tyre--end {
+  align-items: flex-end;
+}
+.tyre--start {
+  align-items: flex-start;
+}
+.tyre__value {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 40px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.tyre.is-low .tyre__value {
+  color: var(--status-warning-text);
+}
+.tyre__label {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--text-muted);
+}
+.tyre-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 15px;
+  background: var(--status-warning-bg);
+  color: var(--status-warning-text);
+  font-weight: 500;
+  font-size: 15px;
+}
+.tyre-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-warning);
+}
+.tyre-chip-spacer {
+  height: 32px;
+}
+
+.tip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px 16px 20px;
+  border: 1px solid var(--accent-default);
+  border-radius: 16px;
+}
+.tip__icon {
+  flex-shrink: 0;
+  color: var(--accent-default);
+}
+.tip__text {
+  flex: 1 0 0;
+  min-width: 0;
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+.tip__action {
+  height: 52px;
+  padding: 0 22px;
+  border-radius: 26px;
+  background: var(--accent-default);
+  color: var(--accent-on-accent);
+  font-weight: 500;
+  font-size: 17px;
+  white-space: nowrap;
+}
+
+.health__side {
+  width: 640px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.side-card {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+}
+.side-card--grow {
+  flex: 1 0 0;
+  min-height: 0;
+}
+.side-card__title {
+  margin: 0 0 8px;
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+.side-card__spacer {
+  flex: 1 0 0;
+}
+.side-card__actions {
+  display: flex;
+  gap: 10px;
+}
+.pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 18px;
+}
+.pill-btn--solid,
+.pill-btn--outline {
+  flex: 1 0 0;
+  height: 60px;
+  border-radius: 30px;
+}
+.pill-btn--solid {
+  background: var(--text-primary);
+  color: var(--surface-bg);
+}
+.pill-btn--outline {
+  border: 1px solid var(--border-line);
+  color: var(--text-primary);
+}
